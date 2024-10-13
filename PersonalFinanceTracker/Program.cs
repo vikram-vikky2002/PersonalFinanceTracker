@@ -1,5 +1,9 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public class Transaction
 {
@@ -8,7 +12,7 @@ public class Transaction
     public decimal Amount { get; set; }
     public decimal BalanceAfterTransaction { get; set; }
 
-    public Transaction() { }  // Parameterless constructor required for JSON deserialization
+    public Transaction() { }
 
     public Transaction(string type, decimal amount, decimal balanceAfterTransaction)
     {
@@ -24,11 +28,11 @@ public class PersonalFinanceTracker
     private decimal balance;
     private List<Transaction> transactions;
     private string pin;
-    private const string DataFile = "finance_data.json";  // File to save data
+    private const string DataFile = "finance_data.json";
 
     public PersonalFinanceTracker()
     {
-        LoadData();  // Load data from JSON file at startup
+        LoadData();
     }
 
     private void LoadData()
@@ -40,14 +44,15 @@ public class PersonalFinanceTracker
             balance = data.Balance;
             transactions = data.Transactions;
             pin = data.Pin;
+            if (!ValidatePin()) System.Environment.Exit(1);
             Console.WriteLine($"Data loaded! Current Balance: {balance:C}");
         }
         else
         {
-            // Initialize with default values if no saved data is found
             balance = 0;
             transactions = new List<Transaction>();
             pin = SetInitialPin();
+            SaveData();
             Console.WriteLine("No previous data found. New tracker initialized.");
         }
     }
@@ -55,7 +60,7 @@ public class PersonalFinanceTracker
     private string SetInitialPin()
     {
         Console.Write("Set your security PIN: ");
-        return Console.ReadLine();
+        return ReadSecurePin();
     }
 
     private void SaveData()
@@ -73,16 +78,16 @@ public class PersonalFinanceTracker
     private bool ValidatePin()
     {
         Console.Write("Enter PIN: ");
-        string enteredPin = Console.ReadLine();
+        string enteredPin = ReadSecurePin();
 
         if (enteredPin == pin)
         {
-            Console.WriteLine("PIN validated successfully!\n");
+            Console.WriteLine("\nPIN validated successfully!\n");
             return true;
         }
         else
         {
-            Console.WriteLine("Incorrect PIN! Access denied.\n");
+            Console.WriteLine("\nIncorrect PIN! Access denied.\n");
             return false;
         }
     }
@@ -94,7 +99,7 @@ public class PersonalFinanceTracker
         balance += amount;
         AddTransaction("Credit", amount);
         Console.WriteLine($"Credited: {amount:C}. New Balance: {balance:C}");
-        SaveData();  // Save data after every transaction
+        SaveData();
     }
 
     public void DebitAmount(decimal amount)
@@ -110,7 +115,7 @@ public class PersonalFinanceTracker
         balance -= amount;
         AddTransaction("Debit", amount);
         Console.WriteLine($"Debited: {amount:C}. New Balance: {balance:C}");
-        SaveData();  // Save data after every transaction
+        SaveData();
     }
 
     public void ShowTransactions()
@@ -135,16 +140,16 @@ public class PersonalFinanceTracker
         if (!ValidatePin()) return;
 
         Console.Write("Enter new PIN: ");
-        string newPin = Console.ReadLine();
+        string newPin = ReadSecurePin();
 
         Console.Write("Confirm new PIN: ");
-        string confirmPin = Console.ReadLine();
+        string confirmPin = ReadSecurePin();
 
         if (newPin == confirmPin)
         {
             pin = newPin;
             Console.WriteLine("PIN changed successfully!\n");
-            SaveData();  // Save data after PIN change
+            SaveData();
         }
         else
         {
@@ -155,6 +160,33 @@ public class PersonalFinanceTracker
     private void AddTransaction(string type, decimal amount)
     {
         transactions.Add(new Transaction(type, amount, balance));
+    }
+
+    private string ReadSecurePin()
+    {
+        string pin = string.Empty;
+        ConsoleKeyInfo keyInfo;
+
+        while (true)
+        {
+            keyInfo = Console.ReadKey(true);
+
+            if (keyInfo.Key == ConsoleKey.Enter)  // End of input
+                break;
+            else if (keyInfo.Key == ConsoleKey.Backspace && pin.Length > 0)
+            {
+                pin = pin.Substring(0, pin.Length - 1);
+                Console.Write("\b \b");  // Handle backspace on console
+            }
+            else if (!char.IsControl(keyInfo.KeyChar))
+            {
+                pin += keyInfo.KeyChar;
+                Console.Write("*");
+            }
+        }
+
+        Console.WriteLine();  // Move to the next line
+        return pin;
     }
 }
 
@@ -170,7 +202,6 @@ public class Program
     public static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-
         PersonalFinanceTracker tracker = new PersonalFinanceTracker();
 
         bool exit = false;

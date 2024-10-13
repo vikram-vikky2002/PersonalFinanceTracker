@@ -23,8 +23,9 @@ JSON for data storage and retrieval
 - Ensure you have .NET SDK installed on your machine.
 - Download the code or clone the repository.
 ```bash
-git clone <repository-url>
-cd PersonalFinanceTracker
+git clone https://github.com/vikram-vikky2002/PersonalFinanceTracker.git
+
+cd PersonalFinanceTrackercd/PersonalFinanceTracker
 ```
 ### 2. Run the application:
 Open the terminal/command prompt in the project folder and run the following command:
