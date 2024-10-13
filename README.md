@@ -1,4 +1,4 @@
-# Personal Finance Tracker
+# Personal Finance Tracker - using C#
 A console-based personal finance tracker that helps users manage their financial transactions by tracking credits and debits. It features a PIN-based security system to ensure only authorized users can access the application and perform transactions. The app also saves data locally to maintain the balance and transaction history across sessions.
 
 ## Features
